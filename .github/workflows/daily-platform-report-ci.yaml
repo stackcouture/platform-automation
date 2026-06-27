@@ -1,0 +1,63 @@
+name: Daily Platform Report CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'daily-platform-report/**'
+      - '.github/workflows/daily-platform-report-ci.yaml'
+
+env:
+  PROJECT_ID: "project-18ee516c-a108-431d-a73"
+  REGION: asia-south1
+
+  REPOSITORY: platform-automation-repo
+  IMAGE_NAME: daily-platform-report
+
+  IMAGE_TAG: ${{ github.sha }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/440909314761/locations/global/workloadIdentityPools/platform-github-pool/providers/github-provider
+          service_account: github-actions@project-18ee516c-a108-431d-a73.iam.gserviceaccount.com
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
+
+      - name: Build Docker Image
+        working-directory: ./daily-platform-report
+        run: |
+          docker build \
+            -t $IMAGE_NAME:$IMAGE_TAG \
+            .
+
+      - name: Tag Docker Image
+        run: |
+          docker tag \
+            $IMAGE_NAME:$IMAGE_TAG \
+            $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:$IMAGE_TAG
+
+      - name: Push Docker Image
+        run: |
+          docker push \
+            $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:$IMAGE_TAG
