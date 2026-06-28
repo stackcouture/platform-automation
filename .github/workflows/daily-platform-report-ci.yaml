@@ -66,7 +66,7 @@ jobs:
       - name: Checkout GitOps Repo
         uses: actions/checkout@v4
         with:
-          repository: stackcouture/platform-automation
+          repository: stackcouture/gitops-microservices-platform
           token: ${{ secrets.GITOPS_TOKEN }}
           fetch-depth: 0
 
@@ -92,7 +92,7 @@ jobs:
           cd automation/daily-platform-report/overlays/dev
 
           kustomize edit set image \
-          asia-south1-docker.pkg.dev/project-18ee516c-a108-431d-a73/vote-docker-repo/vote=asia-south1-docker.pkg.dev/project-18ee516c-a108-431d-a73/platform-automation-repo/daily-platform-report:${IMAGE_TAG}
+          asia-south1-docker.pkg.dev/project-18ee516c-a108-431d-a73/platform-automation-repo/daily-platform-report=asia-south1-docker.pkg.dev/project-18ee516c-a108-431d-a73/platform-automation-repo/daily-platform-report:${IMAGE_TAG}
       
       - name: Verify
         run: |
